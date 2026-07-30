@@ -10,6 +10,11 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+    ignore:
+      # Criterion 0.8 requires Rust 1.86; preserve the crate's Rust 1.85 MSRV.
+      - dependency-name: criterion
+        versions:
+          - ">= 0.8"
 
   - package-ecosystem: github-actions
     directory: /
