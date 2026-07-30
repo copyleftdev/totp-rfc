@@ -1,6 +1,6 @@
 [package]
 name = "totp-rfc"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 rust-version = "1.85"
 description = "Security-hardened, allocation-free no_std HOTP and TOTP for Rust with strict RFC 4226/6238 behavior"

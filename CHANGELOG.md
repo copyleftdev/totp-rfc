@@ -7,6 +7,16 @@ and releases follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## 0.1.2 - 2026-07-30
+
+### Changed
+
+- Positioned the crate as a security-hardened, allocation-free `no_std`
+  HOTP/TOTP verification core for Rust.
+- Clarified the boundary between the auditable OTP primitive layer and
+  provisioning, QR, clock, database, and secret-generation concerns.
+- Improved crates.io search metadata for `constant-time` and `no-std` users.
+
 ## 0.1.1 - 2026-07-30
 
 ### Added
@@ -44,6 +54,7 @@ and releases follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `no_std` operation, checked 64-bit arithmetic, and Rust 1.85 MSRV.
 - Complete RFC vector, boundary, API contract, and documentation tests.
 
-[Unreleased]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/copyleftdev/totp-rfc/releases/tag/v0.1.0
