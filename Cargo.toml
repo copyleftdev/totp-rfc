@@ -3,14 +3,14 @@ name = "totp-rfc"
 version = "0.1.1"
 edition = "2021"
 rust-version = "1.85"
-description = "Strict no_std HOTP and TOTP with constant-time code comparison, implementing RFC 4226 and RFC 6238"
+description = "Security-hardened, allocation-free no_std HOTP and TOTP for Rust with strict RFC 4226/6238 behavior"
 documentation = "https://docs.rs/totp-rfc"
 homepage = "https://github.com/copyleftdev/totp-rfc"
 repository = "https://github.com/copyleftdev/totp-rfc"
 license = "MIT"
 readme = "README.md"
 publish = ["crates-io"]
-keywords = ["totp", "hotp", "2fa", "authentication", "no-std"]
+keywords = ["totp", "hotp", "2fa", "no-std", "constant-time"]
 categories = ["authentication", "cryptography", "no-std"]
 exclude = ["/mutants.out/", "/mutants.out.old/", "/tools/"]
 

@@ -7,14 +7,16 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Core-only](https://img.shields.io/badge/no__std-supported-success.svg)](#no_std)
 
-Strict, `no_std` HOTP and TOTP with constant-time code comparison for Rust.
+Security-hardened, allocation-free, `no_std` HOTP and TOTP primitives for
+Rust.
 
-`totp-rfc` implements the HMAC-based one-time password algorithm from
+`totp-rfc` is a compact Rust authentication library implementing the HMAC-based
+one-time password algorithm from
 [RFC 4226](https://www.rfc-editor.org/rfc/rfc4226) and the time-based one-time
 password algorithm from [RFC 6238](https://www.rfc-editor.org/rfc/rfc6238).
-It is designed for security-sensitive 2FA and MFA systems that need a small,
-auditable, `no_std` foundation instead of provisioning, QR-code, or storage
-abstractions.
+It is designed for embedded, server, and security-sensitive 2FA and MFA systems
+that need a small, auditable verification core instead of provisioning,
+QR-code, or storage abstractions.
 
 ## Why totp-rfc?
 
@@ -23,7 +25,8 @@ abstractions.
 - Six-, seven-, and eight-digit decimal one-time passwords
 - Mandatory 128-bit minimum secret length
 - Strict ASCII input parsing with preserved leading zeroes
-- Constant-time comparison for well-formed authentication codes
+- Constant-address dynamic truncation across every RFC-defined digest offset
+- Constant-time comparison and first-match selection for well-formed codes
 - Checked 64-bit counters and timestamps beyond the year 2038
 - Bounded HOTP resynchronization and TOTP clock-drift windows
 - Borrowed secrets and zeroized transient HMAC/hash state
@@ -31,6 +34,18 @@ abstractions.
 
 The [RFC compliance matrix](docs/compliance.md) maps each protocol requirement
 to its implementation and test evidence.
+
+## Deliberately a primitive layer
+
+Choose `totp-rfc` when the trusted OTP core should remain compact, portable,
+allocation-free, and independently testable. It exposes explicit timestamps,
+counters, validation windows, drift, and next-counter state so the surrounding
+authentication service can enforce its own replay and throttling policy.
+
+Base32, `otpauth://` provisioning, QR generation, random-secret generation,
+database access, and system-clock policy remain outside the crate. Applications
+that want an all-in-one enrollment toolkit can compose those concerns above
+`totp-rfc` without adding them to the cryptographic verification boundary.
 
 ## Installation
 
