@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: RFC 4226
+    url: https://www.rfc-editor.org/rfc/rfc4226
+    about: Normative HOTP specification.
+  - name: RFC 6238
+    url: https://www.rfc-editor.org/rfc/rfc6238
+    about: Normative TOTP specification.

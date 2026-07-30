@@ -1,0 +1,51 @@
+name: Bug report
+description: Report incorrect HOTP/TOTP behavior, interoperability, or API defects.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never include production shared secrets, live OTP codes, API tokens, or private user data.
+        For suspected vulnerabilities, use GitHub's private vulnerability reporting instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest self-contained Rust example using non-production test data.
+      render: rust
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: totp-rfc version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: rust
+    attributes:
+      label: Rust version and target
+      placeholder: rustc 1.85.0, x86_64-unknown-linux-gnu
+    validations:
+      required: true
+  - type: input
+    id: features
+    attributes:
+      label: Cargo features
+      placeholder: default, std, or no-default-features
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include relevant logs or RFC section references after removing secrets.

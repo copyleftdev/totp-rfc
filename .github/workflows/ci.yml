@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  quality:
+    name: Test, lint, docs, package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal --component clippy,rustfmt
+
+      - name: Fetch locked dependencies
+        run: cargo +stable fetch --locked
+
+      - name: Check formatting
+        run: cargo +stable fmt --all -- --check
+
+      - name: Lint every target
+        run: cargo +stable clippy --all-targets --all-features --locked -- -D warnings
+
+      - name: Test with all features
+        run: cargo +stable test --all-features --locked
+
+      - name: Test without default features
+        run: cargo +stable test --no-default-features --locked
+
+      - name: Build warning-free documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo +stable doc --all-features --no-deps --locked
+
+      - name: Verify the crates.io package
+        run: cargo +stable package --locked
+
+  msrv:
+    name: Rust 1.85 MSRV
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install MSRV
+        run: rustup toolchain install 1.85.0 --profile minimal
+
+      - name: Check all targets on MSRV
+        run: cargo +1.85.0 check --all-targets --all-features --locked
+
+      - name: Test library and integration tests on MSRV
+        run: cargo +1.85.0 test --lib --tests --all-features --locked
+
+  no-std:
+    name: Embedded no_std
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install embedded Rust target
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup target add thumbv7em-none-eabi --toolchain stable
+
+      - name: Check core-only library
+        run: cargo +stable check --lib --no-default-features --target thumbv7em-none-eabi --locked

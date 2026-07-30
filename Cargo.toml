@@ -1,0 +1,44 @@
+[package]
+name = "totp-rfc"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "Strict, constant-time, no_std HOTP and TOTP authentication primitives implementing RFC 4226 and RFC 6238"
+documentation = "https://docs.rs/totp-rfc"
+homepage = "https://github.com/copyleftdev/totp-rfc"
+repository = "https://github.com/copyleftdev/totp-rfc"
+license = "MIT"
+readme = "README.md"
+publish = ["crates-io"]
+keywords = ["totp", "hotp", "2fa", "authentication", "no-std"]
+categories = ["authentication", "cryptography", "no-std"]
+exclude = ["/mutants.out/", "/mutants.out.old/"]
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+hmac = { version = "0.13.0", default-features = false, features = ["zeroize"] }
+sha1 = { version = "0.11.0", default-features = false, features = ["zeroize"] }
+sha2 = { version = "0.11.0", default-features = false, features = ["zeroize"] }
+subtle = { version = "2.6.1", default-features = false }
+
+[dev-dependencies]
+criterion = { version = "0.7.0", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "primitives"
+harness = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[lints.rust]
+missing_docs = "deny"
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"

@@ -1,0 +1,9 @@
+# Keep the checked-in defaults broad: mutate every library module and run the
+# complete feature set. Resource limits that cargo-mutants only exposes as CLI
+# flags are applied by scripts/mutation-test.sh.
+all_features = true
+examine_globs = ["src/*.rs"]
+additional_cargo_args = ["--offline"]
+minimum_test_timeout = 5
+timeout_multiplier = 5.0
+build_timeout_multiplier = 5.0
