@@ -4,7 +4,7 @@ Canonical repository: `copyleftdev/totp-rfc`
 
 ## About description
 
-> Strict, constant-time, no_std HOTP and TOTP primitives for Rust, implementing RFC 4226 and RFC 6238 for secure 2FA and MFA systems.
+> Strict no_std HOTP and TOTP for Rust with constant-time code comparison, implementing RFC 4226 and RFC 6238 for secure 2FA and MFA systems.
 
 ## Website
 

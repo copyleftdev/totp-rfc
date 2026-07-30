@@ -1,4 +1,5 @@
 /target/
+/tools/ctgrind-harness/target/
 /mutants.out/
 /mutants.out.old/
 *.profraw

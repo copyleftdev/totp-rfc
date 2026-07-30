@@ -8,6 +8,24 @@ pub const MIN_SECRET_BYTES: usize = 16;
 /// The wrapper deliberately does not implement [`Debug`] or expose the secret
 /// bytes. It borrows rather than owns key material, so the caller retains
 /// control over storage, encryption, locking, and zeroization.
+///
+/// Secret material cannot be accidentally printed through `Debug`:
+///
+/// ```compile_fail
+/// use totp_rfc::Secret;
+///
+/// let secret = Secret::new(b"12345678901234567890").unwrap();
+/// println!("{secret:?}");
+/// ```
+///
+/// The borrowed bytes are not exposed through the public API:
+///
+/// ```compile_fail
+/// use totp_rfc::Secret;
+///
+/// let secret = Secret::new(b"12345678901234567890").unwrap();
+/// let leaked = secret.as_bytes();
+/// ```
 pub struct Secret<'a> {
     bytes: &'a [u8],
 }

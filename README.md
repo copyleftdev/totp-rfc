@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Core-only](https://img.shields.io/badge/no__std-supported-success.svg)](#no_std)
 
-Strict, constant-time HOTP and TOTP primitives for Rust.
+Strict, `no_std` HOTP and TOTP with constant-time code comparison for Rust.
 
 `totp-rfc` implements the HMAC-based one-time password algorithm from
 [RFC 4226](https://www.rfc-editor.org/rfc/rfc4226) and the time-based one-time
@@ -136,6 +136,12 @@ The `Secret` wrapper borrows key material and does not own or retain it.
 Long-term storage encryption, memory locking, and caller-owned key zeroization
 remain application responsibilities.
 
+Constant-time equality protects comparisons of well-formed code values. It is
+not a claim that the complete generation or verification path is
+side-channel-free on every compiler, target, cryptographic backend, or CPU.
+Use the repository's statistical timing lab on deployment-representative
+hardware for changes affecting those paths.
+
 Use at least 20 random bytes for SHA-1, 32 for SHA-256, or 64 for SHA-512. The
 API enforces RFC 4226's mandatory minimum of 16 bytes.
 
@@ -158,10 +164,33 @@ The repository tests:
 
 - every RFC 4226 Appendix D HOTP vector;
 - all SHA-1, SHA-256, and SHA-512 vectors from RFC 6238 Appendix B;
+- a bounded [attacker-oriented suite](docs/adversarial-testing.md) covering
+  hostile syntax, Unicode confusables, protocol confusion, replay assumptions,
+  independent HMAC oracle sweeps, panic resistance, and arithmetic attacks;
+- a calibrated [security assurance case](docs/security-assurance.md) combining
+  secret-taint analysis and repeated statistical timing evidence;
 - time, counter, parsing, overflow, drift, and replay-state boundaries;
 - default-feature and `no_std` configurations;
 - the declared Rust 1.85 minimum version;
 - every viable mutation generated across the library.
+
+Run the focused attacker suite:
+
+```console
+./scripts/adversarial-test.sh
+```
+
+Run the bounded dudect timing-leakage laboratory:
+
+```console
+./scripts/timing-test.sh
+```
+
+Run the complete bounded release-assurance bundle:
+
+```console
+TIMING_CPU=3 ./scripts/assurance-test.sh
+```
 
 Run the resource-bounded mutation sweep:
 
@@ -175,7 +204,7 @@ Run the Criterion primitive benchmarks:
 nice -n 10 cargo bench --bench primitives --offline -j 1
 ```
 
-Both suites deliberately limit concurrency and execution time.
+These suites deliberately limit concurrency and execution time.
 
 ## Minimum supported Rust version
 

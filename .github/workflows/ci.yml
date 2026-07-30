@@ -39,7 +39,7 @@ jobs:
       - name: Lint every target
         run: cargo +stable clippy --all-targets --all-features --locked -- -D warnings
 
-      - name: Test with all features
+      - name: Test all features, including bounded attacker cases
         run: cargo +stable test --all-features --locked
 
       - name: Test without default features

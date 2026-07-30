@@ -1,0 +1,53 @@
+name: Timing leakage advisory
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: timing-leakage-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTUP_TOOLCHAIN: stable
+
+jobs:
+  dudect:
+    name: Dudect statistical probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Fetch locked dependencies
+        run: cargo fetch --locked
+
+      - name: Run calibrated timing evidence passes
+        env:
+          TIMING_EVIDENCE_RUNS: 3
+          TIMING_TIMEOUT_SECONDS: 60
+        run: ./scripts/timing-evidence.sh
+
+      - name: Upload timing evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: timing-evidence
+          path: target/timing-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Explain advisory result
+        if: ${{ always() }}
+        run: |
+          echo "Shared-runner timing data is advisory only."
+          echo "Reproduce suspicious |t| values on quiet, pinned hardware."

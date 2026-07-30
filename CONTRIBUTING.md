@@ -60,3 +60,28 @@ The pull request description should cover:
 
 All CI checks must pass. Review may request additional RFC vectors, mutation
 tests, or misuse-resistance documentation.
+
+Security-sensitive changes should also run the focused, resource-bounded
+attacker suite:
+
+```console
+./scripts/adversarial-test.sh
+```
+
+Changes to verification, parsing, HMAC selection, or window traversal should
+also run the advisory timing-leakage laboratory on quiet hardware:
+
+```console
+./scripts/timing-test.sh
+```
+
+Before a security-sensitive release, run the calibrated assurance bundle on a
+quiet Linux host with Valgrind and a pinned CPU:
+
+```console
+TIMING_CPU=3 ./scripts/assurance-test.sh
+```
+
+Attach `target/timing-evidence/summary.tsv` and the corresponding environment
+metadata to the internal release record. Do not interpret a passing result as
+a universal guarantee across different compilers, targets, or processors.

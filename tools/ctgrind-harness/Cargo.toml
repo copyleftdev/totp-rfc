@@ -1,0 +1,18 @@
+[package]
+name = "totp-ctgrind-harness"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.85"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+totp-rfc = { path = "../.." }
+
+[profile.release]
+opt-level = 1
+debug = true
+codegen-units = 1
+lto = false

@@ -1,6 +1,6 @@
 use core::fmt;
 
-use subtle::ConstantTimeEq;
+use subtle::{Choice, ConstantTimeEq};
 
 use crate::{CodeError, Error};
 
@@ -118,10 +118,14 @@ impl Code {
         self.digits
     }
 
-    pub(crate) fn ct_eq(self, other: Self) -> bool {
+    pub(crate) fn ct_eq_choice(self, other: Self) -> Choice {
         let values_equal = self.value.to_be_bytes().ct_eq(&other.value.to_be_bytes());
         let widths_equal = self.digits.get().ct_eq(&other.digits.get());
-        bool::from(values_equal & widths_equal)
+        values_equal & widths_equal
+    }
+
+    pub(crate) fn ct_eq(self, other: Self) -> bool {
+        bool::from(self.ct_eq_choice(other))
     }
 }
 

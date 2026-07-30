@@ -1,5 +1,6 @@
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::{Sha256, Sha512};
+use subtle::{Choice, ConditionallySelectable};
 
 use crate::hotp::{dynamic_truncate, generate_with_sha1};
 use crate::{Code, CodeError, Digits, Error, Secret};
@@ -84,6 +85,22 @@ pub struct Totp {
     digits: Digits,
     period: u64,
     epoch: u64,
+}
+
+struct MatchAccumulator {
+    found: Choice,
+    counter: u64,
+    drift: i32,
+}
+
+impl MatchAccumulator {
+    fn new() -> Self {
+        Self {
+            found: Choice::from(0),
+            counter: 0,
+            drift: 0,
+        }
+    }
 }
 
 impl Totp {
@@ -210,7 +227,9 @@ impl Totp {
     ///
     /// The current step is preferred, followed by past steps nearest-first
     /// and future steps nearest-first. Every representable counter in the
-    /// configured window is evaluated even after a match.
+    /// configured window is evaluated even after a match, and the first match
+    /// is recorded with masked selection rather than position-dependent
+    /// control flow.
     ///
     /// RFC 6238 requires the caller to record successful use and reject a
     /// replay of the same time-step code. The returned counter and drift are
@@ -229,7 +248,7 @@ impl Totp {
     ) -> Result<Option<TotpMatch>, VerifyError> {
         let candidate = Code::parse(candidate, self.digits)?;
         let counter = self.counter_at(timestamp)?;
-        let mut matched = None;
+        let mut matched = MatchAccumulator::new();
 
         self.consider_match(secret, counter, 0, candidate, &mut matched);
 
@@ -259,7 +278,14 @@ impl Totp {
             );
         }
 
-        Ok(matched)
+        Ok(if bool::from(matched.found) {
+            Some(TotpMatch {
+                counter: matched.counter,
+                drift: matched.drift,
+            })
+        } else {
+            None
+        })
     }
 
     fn consider_match(
@@ -268,12 +294,15 @@ impl Totp {
         counter: u64,
         drift: i32,
         candidate: Code,
-        matched: &mut Option<TotpMatch>,
+        matched: &mut MatchAccumulator,
     ) {
-        let equal = self.generate_for_counter(secret, counter).ct_eq(candidate);
-        if equal && matched.is_none() {
-            *matched = Some(TotpMatch { counter, drift });
-        }
+        let equal = self
+            .generate_for_counter(secret, counter)
+            .ct_eq_choice(candidate);
+        let select = equal & !matched.found;
+        matched.counter = u64::conditional_select(&matched.counter, &counter, select);
+        matched.drift = i32::conditional_select(&matched.drift, &drift, select);
+        matched.found |= equal;
     }
 
     fn generate_for_counter(&self, secret: &Secret<'_>, counter: u64) -> Code {

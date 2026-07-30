@@ -7,12 +7,30 @@ and releases follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## 0.1.1 - 2026-07-30
+
 ### Added
 
+- Resource-bounded adversarial tests for hostile syntax, Unicode confusables,
+  protocol confusion, replay assumptions, independent HMAC oracle sweeps,
+  panic resistance, decimal-code collision semantics, and arithmetic
+  boundaries.
+- Opt-in dudect timing-leakage probes for code values, mismatch position,
+  secret contents across all three RFC hash algorithms, counter contents,
+  validation-window match position, and harness calibration.
+- Calibrated Valgrind secret-taint analysis, three-pass machine-readable timing
+  evidence, and a bounded release-assurance runner.
 - GitHub Actions CI for stable Rust, Rust 1.85 MSRV, and embedded `no_std`.
 - Automated crates.io publishing from matching GitHub release tags.
 - Supply-chain policy checks and Dependabot configuration.
 - Criterion benchmarks and resource-bounded mutation testing.
+
+### Changed
+
+- Dynamic truncation now reads all 16 RFC-permitted windows and uses masked
+  selection instead of a secret-derived memory address.
+- HOTP and TOTP window searches use masked first-match selection so match
+  position does not affect control flow.
 
 ## 0.1.0 - 2026-07-30
 
@@ -26,5 +44,6 @@ and releases follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `no_std` operation, checked 64-bit arithmetic, and Rust 1.85 MSRV.
 - Complete RFC vector, boundary, API contract, and documentation tests.
 
-[Unreleased]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/copyleftdev/totp-rfc/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/copyleftdev/totp-rfc/releases/tag/v0.1.0

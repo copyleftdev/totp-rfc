@@ -1,0 +1,53 @@
+name: Constant-time evidence
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: constant-time-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTUP_TOOLCHAIN: stable
+
+jobs:
+  ctgrind:
+    name: Valgrind secret-taint analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Install Valgrind when absent
+        run: |
+          if ! command -v valgrind >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends valgrind gcc
+          fi
+
+      - name: Fetch locked harness dependencies
+        run: cargo fetch --locked --manifest-path tools/ctgrind-harness/Cargo.toml
+
+      - name: Prove secret-independent control flow and addresses
+        env:
+          CTGRIND_TIMEOUT_SECONDS: 120
+        run: ./scripts/ctgrind-test.sh
+
+      - name: Upload ctgrind evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ctgrind-evidence
+          path: target/ctgrind-harness/*.log
+          if-no-files-found: error
+          retention-days: 30

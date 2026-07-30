@@ -1,5 +1,6 @@
 use hmac::{Hmac, KeyInit, Mac};
 use sha1::Sha1;
+use subtle::{Choice, ConditionallySelectable, ConstantTimeEq};
 
 use crate::{Code, CodeError, Digits, Secret};
 
@@ -49,9 +50,10 @@ impl Hotp {
     /// Searches the current counter and `look_ahead` following counters.
     ///
     /// Every representable counter in the window is evaluated even after a
-    /// match. This avoids leaking the match position through the number of
-    /// HMAC evaluations. The first matching counter is returned if a rare
-    /// decimal-code collision occurs.
+    /// match, and the first match is recorded with masked selection. This
+    /// avoids leaking the match position through either HMAC count or
+    /// position-dependent control flow. The first matching counter is
+    /// returned if a rare decimal-code collision occurs.
     ///
     /// The caller must atomically persist [`HotpMatch::next_counter`] after
     /// success to prevent replay. A `None` next counter means the 64-bit
@@ -69,22 +71,27 @@ impl Hotp {
         candidate: &str,
     ) -> Result<Option<HotpMatch>, CodeError> {
         let candidate = Code::parse(candidate, self.digits)?;
-        let mut matched = None;
+        let mut found = Choice::from(0);
+        let mut matched_counter = 0_u64;
 
         for offset in 0..=u64::from(look_ahead) {
             let Some(current) = counter.checked_add(offset) else {
                 continue;
             };
-            let equal = self.generate(secret, current).ct_eq(candidate);
-            if equal && matched.is_none() {
-                matched = Some(HotpMatch {
-                    counter: current,
-                    next_counter: current.checked_add(1),
-                });
-            }
+            let equal = self.generate(secret, current).ct_eq_choice(candidate);
+            let select = equal & !found;
+            matched_counter = u64::conditional_select(&matched_counter, &current, select);
+            found |= equal;
         }
 
-        Ok(matched)
+        Ok(if bool::from(found) {
+            Some(HotpMatch {
+                counter: matched_counter,
+                next_counter: matched_counter.checked_add(1),
+            })
+        } else {
+            None
+        })
     }
 }
 
@@ -126,13 +133,49 @@ pub(crate) fn generate_with_sha1(secret: &Secret<'_>, counter: u64, digits: Digi
 
 pub(crate) fn dynamic_truncate(output: &[u8], digits: Digits) -> Code {
     // Every RFC-supported digest is at least 20 bytes, while the low nibble
-    // limits the greatest accessed index to 18.
-    let offset = usize::from(output[output.len() - 1] & 0x0f);
-    let binary = u32::from_be_bytes([
-        output[offset],
-        output[offset + 1],
-        output[offset + 2],
-        output[offset + 3],
-    ]) & 0x7fff_ffff;
+    // limits the greatest accessed index to 18. Evaluate every possible
+    // window so the secret-derived offset never controls a memory address.
+    let offset = output[output.len() - 1] & 0x0f;
+    let mut selected = 0_u32;
+    for candidate in 0_u8..=15 {
+        let index = usize::from(candidate);
+        let window = u32::from_be_bytes([
+            output[index],
+            output[index + 1],
+            output[index + 2],
+            output[index + 3],
+        ]);
+        selected = u32::conditional_select(&selected, &window, candidate.ct_eq(&offset));
+    }
+    let binary = selected & 0x7fff_ffff;
     Code::generated(binary % digits.modulus(), digits)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::dynamic_truncate;
+    use crate::Digits;
+
+    #[test]
+    fn constant_address_truncation_matches_every_rfc_offset() {
+        let mut output = [0_u8; 20];
+        for (index, byte) in output.iter_mut().enumerate() {
+            *byte = u8::try_from(index).unwrap();
+        }
+
+        for offset in 0_u8..=15 {
+            output[19] = offset;
+            let index = usize::from(offset);
+            let expected = u32::from_be_bytes([
+                output[index],
+                output[index + 1],
+                output[index + 2],
+                output[index + 3],
+            ]) & 0x7fff_ffff;
+            assert_eq!(
+                dynamic_truncate(&output, Digits::EIGHT).value(),
+                expected % Digits::EIGHT.modulus()
+            );
+        }
+    }
 }

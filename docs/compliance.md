@@ -43,7 +43,14 @@ claimed as properties of a stateless calculation library.
 - Well-formed code values compare through `subtle` constant-time equality,
   including `Code`'s `PartialEq` implementation.
 - Window searches evaluate every representable counter in the requested
-  window, even after a match; counter arithmetic never wraps.
+  window, even after a match; masked selection records the first match without
+  position-dependent control flow, and counter arithmetic never wraps.
+- Dynamic truncation reads every RFC-permitted digest window and selects the
+  secret-derived offset with a constant-time mask rather than a
+  secret-dependent memory address.
+- The bounded attacker suite cross-checks an independent HMAC oracle and
+  exercises hostile syntax, configuration confusion, replay assumptions,
+  overflow boundaries, and deterministic panic-resistance corpora.
 - RustCrypto's zeroization features clear transient HMAC and hash state on
   drop; the caller retains responsibility for long-term key storage.
 - The crate forbids unsafe Rust, denies missing public documentation, supports
