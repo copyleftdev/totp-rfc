@@ -2,7 +2,15 @@
 all-features = true
 
 [advisories]
-ignore = []
+ignore = [
+    # `atty` is reachable only through the dudect development benchmark.
+    # It is never linked into the published library; no fixed release exists.
+    "RUSTSEC-2021-0145",
+]
+# Fail on unmaintained crates we select directly. The dudect-only development
+# harness currently carries transitive Clap 2 support crates that are not
+# linked into the published library.
+unmaintained = "workspace"
 
 [licenses]
 allow = ["Apache-2.0", "BSD-3-Clause", "MIT"]
